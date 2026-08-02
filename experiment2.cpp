@@ -1,14 +1,12 @@
 #include <iostream>
-#include <fstream>
 #include <string>
 using namespace std;
 
+// check if a word is a recognized keyword
 bool isKeyword(string word) {
-    string keywords[] = {
-        "int", "float", "char", "double", "void", "return",
-        "if", "else", "while", "for", "cout", "cin", "main"
-    };
-    int count = 13;
+    string keywords[] = {"cout", "cin", "endl", "int", "float",
+                          "char", "double", "void", "return"};
+    int count = 9;
 
     for (int i = 0; i < count; i++) {
         if (word == keywords[i])
@@ -17,84 +15,86 @@ bool isKeyword(string word) {
     return false;
 }
 
-int main() {
-    string filename;
-    cout << "Enter the source code text file name: ";
-    cin >> filename;
+// decide what type a single token is
+string classify(string token) {
+    if (token.empty())
+        return "Unknown";
 
-    ifstream file(filename);
-    if (!file.is_open()) {
-        cout << "Could not open file." << endl;
-        return 1;
+    // string literal, e.g. "Hello"
+    if (token[0] == '"')
+        return "String Literal";
+
+    // keyword
+    if (isKeyword(token))
+        return "Keyword";
+
+    // operator (<<, +, -, *, /, =)
+    if (token == "<<" || token == ">>" || token == "+" || token == "-" ||
+        token == "*" || token == "/" || token == "=")
+        return "Operator";
+
+    // punctuation
+    if (token == ";" || token == "," || token == "(" || token == ")")
+        return "Punctuation";
+
+    // number (all digits)
+    bool allDigits = true;
+    for (size_t i = 0; i < token.length(); i++) {
+        if (!isdigit(token[i]))
+            allDigits = false;
     }
+    if (allDigits)
+        return "Number";
 
-    string line;
-    int lineNumber = 0;
+    // letters/digits, not a keyword -> identifier
+    if (isalpha(token[0]))
+        return "Identifier";
 
-    // read the file line by line
-    while (getline(file, line)) {
-        lineNumber++;
-        cout << "\nLine " << lineNumber << ": " << line << endl;
+    return "Unknown";
+}
 
-        int count = 0;
-        int i = 0;
-        int len = line.length();
+int main() {
+    string expr = "cout << 60 + sum << \"Hello\" << endl ;";
 
-        // scan the line character by character
-        while (i < len) {
-            char ch = line[i];
+    cout << "Expression: " << expr << endl << endl;
 
-            // skip spaces/tabs
-            if (ch == ' ' || ch == '\t') {
-                i++;
-                continue;
-            }
+    int len = expr.length();
+    int i = 0;
+    int tokenNumber = 0;
 
-            // letters -> identifier or keyword
-            if (isalpha(ch)) {
-                string word = "";
-                while (i < len && isalnum(line[i])) {
-                    word += line[i];
-                    i++;
-                }
-                count++;
-                if (isKeyword(word))
-                    cout << "  Token " << count << ": " << word << " -> Keyword" << endl;
-                else
-                    cout << "  Token " << count << ": " << word << " -> Identifier" << endl;
-                continue;
-            }
-
-            // digits -> number
-            if (isdigit(ch)) {
-                string num = "";
-                while (i < len && isdigit(line[i])) {
-                    num += line[i];
-                    i++;
-                }
-                count++;
-                cout << "  Token " << count << ": " << num << " -> Number" << endl;
-                continue;
-            }
-
-            // operators
-            if (ch == '+' || ch == '-' || ch == '*' || ch == '/' ||
-                ch == '=' || ch == '<' || ch == '>') {
-                count++;
-                cout << "  Token " << count << ": " << ch << " -> Operator" << endl;
-                i++;
-                continue;
-            }
-
-            // everything else (brackets, semicolon, quotes, etc.)
-            count++;
-            cout << "  Token " << count << ": " << ch << " -> Symbol" << endl;
+    while (i < len) {
+        // skip spaces between tokens
+        if (expr[i] == ' ') {
             i++;
+            continue;
         }
 
-        cout << "  Total tokens in this line: " << count << endl;
+        string token = "";
+
+        if (expr[i] == '"') {
+            token += expr[i];
+            i++;
+            while (i < len && expr[i] != '"') {
+                token += expr[i];
+                i++;
+            }
+            if (i < len) {
+                token += expr[i]; // closing quote
+                i++;
+            }
+        } else {
+            while (i < len && expr[i] != ' ') {
+                token += expr[i];
+                i++;
+            }
+        }
+
+        tokenNumber++;
+        cout << "Token " << tokenNumber << ": " << token
+             << " -> " << classify(token) << endl;
     }
 
-    file.close();
+    cout << "\nTotal tokens: " << tokenNumber << endl;
+
     return 0;
 }
