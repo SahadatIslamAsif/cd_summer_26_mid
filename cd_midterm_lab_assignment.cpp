@@ -1,23 +1,8 @@
-/*
- * Midterm Lab Assignment - Compiler Design (Standard Version)
- *
- * Reads a source code text file and, for every line:
- *   - tokenizes it manually (character by character scan, no built-in
- *     tokenizing function like strtok/stringstream)
- *   - identifies each token as Keyword, Identifier, Number, Operator,
- *     or Symbol
- *   - prints the total number of tokens found on that line
- *
- * This version uses plain while/for loops and std::string, which is
- * the most common and easiest style to read for this kind of lab.
- */
-
 #include <iostream>
 #include <fstream>
 #include <string>
 using namespace std;
 
-// a few common keywords - just check against this small list
 bool isKeyword(string word) {
     string keywords[] = {
         "int", "float", "char", "double", "void", "return",
